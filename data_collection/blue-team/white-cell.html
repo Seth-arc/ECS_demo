@@ -1521,31 +1521,66 @@
 
         // Initialize Firebase
         let db, auth;
-        initializeFirebase().then(({ db: firestoreDb, auth: firebaseAuth }) => {
-            db = firestoreDb;
-            auth = firebaseAuth;
-            window.db = db;
-            window.auth = auth;
-            
-            // Setup real-time listeners once authenticated
-            setupRealtimeListeners();
+        initializeFirebase().then(result => {
+            if (result) {
+                db = result.db;
+                auth = result.auth;
+                window.db = db;
+                window.auth = auth;
+                console.log('Firebase initialized in white-cell');
+                
+                // Setup real-time listeners once authenticated
+                setupRealtimeListeners();
+            } else {
+                db = null;
+                auth = null;
+                window.db = null;
+                window.auth = null;
+                console.log('Firebase not available, using localStorage only');
+            }
+        }).catch(error => {
+            console.error('Firebase initialization failed:', error);
+            db = null;
+            auth = null;
+            window.db = null;
+            window.auth = null;
         });
         
         // Firebase utility functions (now using imported functions)
         async function saveToFirebaseLocal(collectionName, docId, data) {
-            return await saveToFirebase(db, collectionName, docId, data);
+            if (db) {
+                return await saveToFirebase(db, collectionName, docId, data);
+            } else {
+                localStorage.setItem(`${collectionName}_${docId}`, JSON.stringify(data));
+                return true;
+            }
         }
         
         async function loadFromFirebaseLocal(collectionName, docId) {
-            return await loadFromFirebase(db, collectionName, docId);
+            if (db) {
+                return await loadFromFirebase(db, collectionName, docId);
+            } else {
+                const localData = localStorage.getItem(`${collectionName}_${docId}`);
+                return localData ? JSON.parse(localData) : null;
+            }
         }
         
         async function addToFirebaseCollectionLocal(collectionName, data) {
-            return await addToFirebaseCollection(db, collectionName, data);
+            if (db) {
+                return await addToFirebaseCollection(db, collectionName, data);
+            } else {
+                console.log('Firebase not available, skipping add to collection');
+                return null;
+            }
         }
         
         async function queryFirebaseCollectionLocal(collectionName, conditions = []) {
-            return await queryFirebaseCollection(db, collectionName, conditions);
+            if (db) {
+                return await queryFirebaseCollection(db, collectionName, conditions);
+            } else {
+                console.log('Firebase not available, skipping query');
+                return [];
+            }
         }
     </script>
 

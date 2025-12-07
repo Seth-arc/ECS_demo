@@ -1182,31 +1182,59 @@
         let db, auth;
 
         // Initialize Firebase
-        initializeFirebase().then(({ db: firestoreDb, auth: firebaseAuth }) => {
-            db = firestoreDb;
-            auth = firebaseAuth;
-            console.log('Firebase initialized in facilitator');
-            loadData(); // Load data after Firebase is ready
+        initializeFirebase().then(result => {
+            if (result) {
+                db = result.db;
+                auth = result.auth;
+                console.log('Firebase initialized in facilitator');
+            } else {
+                db = null;
+                auth = null;
+                console.log('Firebase not available, using localStorage only');
+            }
+            loadData(); // Load data after Firebase check
         }).catch(error => {
             console.error('Firebase initialization failed:', error);
+            db = null;
+            auth = null;
             loadData(); // Fallback to localStorage
         });
 
         // Local wrapper functions for Firebase operations
         async function saveToFirebaseLocal(collectionName, docId, data) {
-            return await saveToFirebase(db, collectionName, docId, data);
+            if (db) {
+                return await saveToFirebase(db, collectionName, docId, data);
+            } else {
+                localStorage.setItem(`${collectionName}_${docId}`, JSON.stringify(data));
+                return true;
+            }
         }
 
         async function loadFromFirebaseLocal(collectionName, docId) {
-            return await loadFromFirebase(db, collectionName, docId);
+            if (db) {
+                return await loadFromFirebase(db, collectionName, docId);
+            } else {
+                const localData = localStorage.getItem(`${collectionName}_${docId}`);
+                return localData ? JSON.parse(localData) : null;
+            }
         }
 
         async function addToFirebaseCollectionLocal(collectionName, data) {
-            return await addToFirebaseCollection(db, collectionName, data);
+            if (db) {
+                return await addToFirebaseCollection(db, collectionName, data);
+            } else {
+                console.log('Firebase not available, skipping add to collection');
+                return null;
+            }
         }
 
         async function queryFirebaseCollectionLocal(collectionName, conditions = []) {
-            return await queryFirebaseCollection(db, collectionName, conditions);
+            if (db) {
+                return await queryFirebaseCollection(db, collectionName, conditions);
+            } else {
+                console.log('Firebase not available, skipping query');
+                return [];
+            }
         }
 
         // Basic functionality for the facilitator platform
@@ -1611,30 +1639,27 @@
         }
 
         async function loadData() {
-            try {
-                // Load from Firebase
-                const firebaseData = await loadFromFirebaseLocal('facilitator_data', `move_${currentMove}`);
-                if (firebaseData) {
-                    actions = firebaseData.actions || [];
-                    infoRequests = firebaseData.infoRequests || [];
-                    observations = firebaseData.observations || [];
-                    console.log('Facilitator data loaded from Firebase');
-                } else {
-                    throw new Error('No Firebase data found');
-                }
-            } catch (error) {
-                console.error('Error loading from Firebase:', error);
-                // Fallback to localStorage
+            // Try to load from Firebase/localStorage
+            const firebaseData = await loadFromFirebaseLocal('facilitator_data', `move_${currentMove}`);
+            if (firebaseData) {
+                actions = firebaseData.actions || [];
+                infoRequests = firebaseData.infoRequests || [];
+                observations = firebaseData.observations || [];
+                console.log('Facilitator data loaded from Firebase/localStorage');
+            } else {
+                // Fallback to localStorage with different key
                 const savedData = localStorage.getItem(`blueFacilitatorMove${currentMove}`);
                 if (savedData) {
                     const data = JSON.parse(savedData);
                     actions = data.actions || [];
                     infoRequests = data.infoRequests || [];
                     observations = data.observations || [];
+                    console.log('Facilitator data loaded from localStorage');
                 } else {
                     actions = [];
                     infoRequests = [];
                     observations = [];
+                    console.log('No saved facilitator data found');
                 }
             }
             
