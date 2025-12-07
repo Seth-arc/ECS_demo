@@ -2492,10 +2492,14 @@
         // Initialize
         updateTimer();
         updatePhaseGuidance();
-        loadData(); // This is now async
-        updateBadges();
-        setInterval(saveData, 30000);
-        window.addEventListener('beforeunload', saveData);
+        loadData().then(() => {
+            updateBadges();
+            setInterval(saveData, 30000);
+            window.addEventListener('beforeunload', saveData);
+            
+            // Hide loader after data is loaded
+            document.getElementById('loader').classList.add('hidden');
+        });
         
         // Auto-refresh timeline data every 5 seconds
         setInterval(() => {
@@ -2525,12 +2529,6 @@
             }
         });
 
-        // Simple loader hide
-        window.addEventListener('load', function() {
-            setTimeout(function() {
-                document.getElementById('loader').classList.add('hidden');
-            }, 1500);
-        });
-    </script>
+        // Auto-refresh timeline data every 5 seconds
 </body>
 </html>
