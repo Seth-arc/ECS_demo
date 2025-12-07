@@ -1065,6 +1065,16 @@
                         </select>
                     </div>
                     <div class="form-field">
+                        <label class="form-label">Type of Exposure</label>
+                        <select class="form-select" id="actionExposure">
+                            <option value="">Select Type of Exposure</option>
+                            <option value="critical-minerals">Critical Minerals</option>
+                            <option value="supply-chain">Supply Chain</option>
+                            <option value="technologies">Technologies</option>
+                            <option value="manufacturing">Manufacturing</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
                         <label class="form-label">Target (select all that apply)</label>
                         <div class="quick-buttons">
                             <button class="quick-btn target-checkbox" data-target="prc">PRC</button>
@@ -1076,6 +1086,14 @@
                             <button class="quick-btn target-checkbox" data-target="eu-ger">EU–GER</button>
                             <button class="quick-btn target-checkbox" data-target="eu-uk">EU–UK</button>
                         </div>
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label">Engaged</label>
+                        <input type="text" class="form-input" id="actionEngaged" placeholder="Who was engaged before taking this action?">
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label">Describe</label>
+                        <textarea class="form-textarea" id="actionDescribe" placeholder="Describe the action you want to take..."></textarea>
                     </div>
                     <div class="form-field">
                         <label class="form-label">Goal</label>
@@ -1374,6 +1392,9 @@
         function addAction() {
             const mechanism = document.getElementById('actionMechanism').value;
             const sector = document.getElementById('actionSector').value;
+            const exposure = document.getElementById('actionExposure').value;
+            const engaged = document.getElementById('actionEngaged').value.trim();
+            const describe = document.getElementById('actionDescribe').value.trim();
             const goal = document.getElementById('actionGoal').value.trim();
             const outcomes = document.getElementById('actionOutcomes').value.trim();
             const contingencies = document.getElementById('actionContingencies').value.trim();
@@ -1396,7 +1417,10 @@
                 number: actions.length + 1,
                 mechanism: mechanism,
                 sector: sector,
+                exposure: exposure,
                 targets: selectedTargets,
+                engaged: engaged,
+                describe: describe,
                 goal: goal,
                 outcomes: outcomes,
                 contingencies: contingencies,
@@ -1410,6 +1434,9 @@
             // Reset form
             document.getElementById('actionMechanism').value = '';
             document.getElementById('actionSector').value = '';
+            document.getElementById('actionExposure').value = '';
+            document.getElementById('actionEngaged').value = '';
+            document.getElementById('actionDescribe').value = '';
             document.getElementById('actionGoal').value = '';
             document.getElementById('actionOutcomes').value = '';
             document.getElementById('actionContingencies').value = '';
@@ -1450,6 +1477,12 @@
                     'agriculture': 'Agriculture',
                     'telecommunications': 'Telecommunications'
                 };
+                const exposureNames = {
+                    'critical-minerals': 'Critical Minerals',
+                    'supply-chain': 'Supply Chain',
+                    'technologies': 'Technologies',
+                    'manufacturing': 'Manufacturing'
+                };
                 return `
                 <div class="action-item">
                     <div class="action-header">
@@ -1458,7 +1491,10 @@
                     </div>
                     <div><strong>Mechanism:</strong> ${mechanismNames[action.mechanism] || action.mechanism}</div>
                     <div><strong>Sector:</strong> ${sectorNames[action.sector] || action.sector}</div>
+                    ${action.exposure ? `<div><strong>Type of Exposure:</strong> ${exposureNames[action.exposure] || action.exposure}</div>` : ''}
                     <div><strong>Targets:</strong> ${action.targets.join(', ').toUpperCase()}</div>
+                    ${action.engaged ? `<div><strong>Engaged:</strong> ${action.engaged}</div>` : ''}
+                    ${action.describe ? `<div><strong>Describe:</strong> ${action.describe}</div>` : ''}
                     <div><strong>Goal:</strong> ${action.goal}</div>
                     <div><strong>Expected Outcomes:</strong> ${action.outcomes}</div>
                     <div><strong>Ally Contingencies:</strong> ${action.contingencies}</div>
