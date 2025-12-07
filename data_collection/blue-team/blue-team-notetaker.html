@@ -1781,7 +1781,6 @@
             } else {
                 db = null;
                 auth = null;
-                console.log('Firebase not available, using localStorage only');
             }
             loadData(); // Load data after Firebase check
         }).catch(error => {

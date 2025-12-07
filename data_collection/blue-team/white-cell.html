@@ -1536,14 +1536,31 @@
                 auth = null;
                 window.db = null;
                 window.auth = null;
-                console.log('Firebase not available, using localStorage only');
             }
+            // Load data after Firebase check
+            loadData().then(() => {
+                updateBadges();
+                setInterval(saveData, 30000);
+                window.addEventListener('beforeunload', saveData);
+                
+                // Hide loader after data is loaded
+                document.getElementById('loader').classList.add('hidden');
+            });
         }).catch(error => {
             console.error('Firebase initialization failed:', error);
             db = null;
             auth = null;
             window.db = null;
             window.auth = null;
+            // Load data after Firebase check
+            loadData().then(() => {
+                updateBadges();
+                setInterval(saveData, 30000);
+                window.addEventListener('beforeunload', saveData);
+                
+                // Hide loader after data is loaded
+                document.getElementById('loader').classList.add('hidden');
+            });
         });
         
         // Firebase utility functions (now using imported functions)
@@ -2492,14 +2509,6 @@
         // Initialize
         updateTimer();
         updatePhaseGuidance();
-        loadData().then(() => {
-            updateBadges();
-            setInterval(saveData, 30000);
-            window.addEventListener('beforeunload', saveData);
-            
-            // Hide loader after data is loaded
-            document.getElementById('loader').classList.add('hidden');
-        });
         
         // Auto-refresh timeline data every 5 seconds
         setInterval(() => {
