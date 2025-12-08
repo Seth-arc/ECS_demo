@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strategic Simulation | BLUE Team Facilitator</title>
+    <link rel="stylesheet" href="../../styles/blue_facilitator.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+    </style>
+</head>
+<body>
+    <div id="loader" aria-label="Loading simulation environment">
+        <div class="loader-globe">
+            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="24" cy="24" r="22" stroke="currentColor" stroke-width="1.5" fill="none" opacity="0.2"/>
+                <ellipse cx="24" cy="24" rx="22" ry="10" stroke="currentColor" stroke-width="1.5" fill="none" opacity="0.3"/>
+                <ellipse cx="24" cy="24" rx="10" ry="22" stroke="currentColor" stroke-width="1.5" fill="none" opacity="0.3"/>
+                <path d="M2 24h44" stroke="currentColor" stroke-width="1.5" opacity="0.25"/>
+                <path d="M24 2v44" stroke="currentColor" stroke-width="1.5" opacity="0.25"/>
+                <circle cx="24" cy="24" r="22" stroke="currentColor" stroke-width="1.5" fill="none"/>
+            </svg>
+            <div class="loader-ring"></div>
+        </div>
+    </div>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-brand">
+            <a href="../../index.html" class="brand-mark" title="Home" style="color: var(--color-navy)">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M12 3l9 8v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V11l9-8z" fill="currentColor"/>
+                </svg>
+            </a>
+            <div class="header-title">
+                <h1>BLUE Team Facilitator</h1>
+                <p id="moveEpoch">Move 1: Epoch 1 (2027-2030)</p>
+            </div>
+        </div>
+        
+        <div class="header-controls">
+            <div class="control-group">
+                <span class="control-label">Move:</span>
+                <select id="moveSelector" onchange="changeMoveContext()" class="move-selector">
+                    <option value="1">Move 1</option>
+                    <option value="2">Move 2</option>
+                    <option value="3">Move 3</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <span class="control-label">Phase:</span>
+                <div id="phaseIndicator" style="display: flex; gap: 4px;">
+                    <button class="phase-btn active" data-phase="1">1</button>
+                    <button class="phase-btn" data-phase="2">2</button>
+                    <button class="phase-btn" data-phase="3">3</button>
+                    <button class="phase-btn" data-phase="4">4</button>
+                    <button class="phase-btn" data-phase="5">5</button>
+                </div>
+            </div>
+            <div class="session-picker">
+                <span class="control-label">Session</span>
+                <input id="sessionInput" class="session-input" placeholder="session-001" />
+                <button class="phase-btn" id="sessionApply">Set</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Layout -->
+    <div class="main-layout">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="section-nav">
+                <div class="nav-section-label">Sections</div>
+                
+                <div class="nav-item active" data-section="info-requests">
+                    <div class="nav-icon">
+                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    </div>
+                    <div class="nav-content">
+                        <div class="nav-title">Info Requests</div>
+                        <div class="nav-subtitle">Track information needs</div>
+                    </div>
+                </div>
+
+                <div class="nav-item" data-section="actions">
+                    <div class="nav-icon">
+                        <svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                    </div>
+                    <div class="nav-content">
+                        <div class="nav-title">Actions</div>
+                        <div class="nav-subtitle">Manage decisions</div>
+                    </div>
+                    <span class="nav-badge" id="actionsBadge">0</span>
+                </div>
+
+                <div class="nav-item" data-section="observations">
+                    <div class="nav-icon">
+                        <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </div>
+                    <div class="nav-content">
+                        <div class="nav-title">Observations</div>
+                        <div class="nav-subtitle">Key insights & notes</div>
+                    </div>
+                    <span class="nav-badge" id="observationsBadge">0</span>
+                </div>
+
+                <div class="nav-item" data-section="timeline">
+                    <div class="nav-icon">
+                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    </div>
+                    <div class="nav-content">
+                        <div class="nav-title">Timeline</div>
+                        <div class="nav-subtitle">Session overview</div>
+                    </div>
+                </div>
+                <div class="nav-item" data-section="white-responses">
+                    <div class="nav-icon">
+                        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    </div>
+                    <div class="nav-content">
+                        <div class="nav-title">WHITE Cell Responses</div>
+                        <div class="nav-subtitle">Feedback to BLUE</div>
+                    </div>
+                    <span class="nav-badge" id="whiteResponsesBadge">0</span>
+                </div>
+            </div>
+            
+            <div class="sidebar-actions">
+                <button class="btn btn-secondary" onclick="exportData()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Export Data
+                </button>
+                <button class="btn btn-success" onclick="sendToWhiteCell()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                    Submit data to WHITE Cell
+                </button>
+                <button class="btn btn-secondary" onclick="requestDataStorageAccess()" style="margin-top: 8px; font-size: 0.75rem; padding: 6px 12px;">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    Select Data Storage Folder
+                </button>
+            </div>
+            
+            <div class="sidebar-timer">
+                <div class="timer-label">Time Remaining</div>
+                <div class="timer" id="timer">90:00</div>
+                <div class="timer-controls">
+                    <button class="timer-btn" id="startTimer">Start</button>
+                    <button class="timer-btn" id="pauseTimer">Pause</button>
+                    <button class="timer-btn" id="resetTimer">Reset</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="content-area">
+            <!-- Info Requests Section -->
+            <div class="section-content active" id="info-requests">
+                <div class="section-header">
+                    <h2>Info Requests</h2>
+                    <p>Track and manage information requests from the BLUE Team</p>
+                </div>
+
+                <div id="phaseGuidanceContainer"></div>
+
+                <div class="note-card">
+                    <h3>
+                        <span class="card-icon">
+                            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                        </span>
+                        Pending Requests
+                    </h3>
+                    <div id="pendingRequests">
+                        <div class="empty-state">
+                            <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+                            </svg>
+                            <p>No information requests</p>
+                            <p>Requests will appear here as they are submitted</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="note-card">
+                    <h3>
+                        <span class="card-icon">
+                            <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                        </span>
+                        Submit New Request
+                    </h3>
+                    <div class="form-field">
+                        <label class="form-label">Priority</label>
+                        <select class="form-select" id="requestPriority">
+                            <option value="">Select Priority</option>
+                            <option value="normal">Normal</option>
+                            <option value="high">High</option>
+                            <option value="urgent">Urgent</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label">Category (select all that apply)</label>
+                        <div class="quick-buttons">
+                            <button class="quick-btn category-checkbox" data-category="economic">Economic Data</button>
+                            <button class="quick-btn category-checkbox" data-category="trade">Trade Data</button>
+                            <button class="quick-btn category-checkbox" data-category="alliance">Alliance Status</button>
+                            <button class="quick-btn category-checkbox" data-category="tech">Tech Assessment</button>
+                        </div>
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label">What does the team need?</label>
+                        <textarea class="form-textarea" id="requestDetails" placeholder="Describe the specific information or clarification needed..."></textarea>
+                    </div>
+                    <button class="btn btn-success" onclick="addInfoRequest()">Submit Request</button>
+                </div>
+            </div>
+
+            <!-- Actions Section -->
+            <div class="section-content" id="actions">
+                <div class="section-header">
+                    <h2>Actions</h2>
+                    <p>Manage and track BLUE Team decisions and actions</p>
+                </div>
+
+                <div class="note-card">
+                    <h3>
+                        <span class="card-icon">
+                            <svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                        </span>
+                        Current Actions
+                    </h3>
+                    <div id="currentActions">
+                        <div class="empty-state">
+                            <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                            </svg>
+                            <p>No actions recorded</p>
+                            <p>Actions will appear here as they are decided</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="note-card">
+                    <h3>
+                        <span class="card-icon">
+                            <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                        </span>
+                        Add New Action
+                    </h3>
+                    <div class="form-field">
+                        <label class="form-label">Action Number</label>
+                        <input type="text" class="form-input" id="actionNumber" readonly value="Auto-generated">
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label">Mechanism</label>
+                        <select class="form-select" id="actionMechanism">
+                            <option value="">Select Mechanism</option>
+                            <option value="sanctions">Sanctions/Financial Restrictions</option>
+                            <option value="export">Export Controls</option>
+                            <option value="investment">Investment / Capital Controls</option>
+                            <option value="trade">Trade Policy</option>
+                            <option value="financial">Financial/ Digital Asset Policy</option>
+                            <option value="economic">General Economic Statecraft/Cross-Cutting Tools</option>
+                            <option value="industrial">Industrial Policy</option>
+                            <option value="infrastructure">Infrastructure & Workforce Development/Supply-Chain Resilience</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label">Sector</label>
+                        <select class="form-select" id="actionSector">
+                            <option value="">Select Sector</option>
+                            <option value="biotechnology">Biotechnology</option>
+                            <option value="agriculture">Agriculture</option>
+                            <option value="telecommunications">Telecommunications</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label">Target (select all that apply)</label>
+                        <div class="quick-buttons">
+                            <button class="quick-btn target-checkbox" data-target="prc">PRC</button>
+                            <button class="quick-btn target-checkbox" data-target="rus">RUS</button>
+                            <button class="quick-btn target-checkbox" data-target="ap-aus">AP–AUS</button>
+                            <button class="quick-btn target-checkbox" data-target="ap-rok">AP–ROK</button>
+                            <button class="quick-btn target-checkbox" data-target="ap-jap">AP–JAP</button>
+                            <button class="quick-btn target-checkbox" data-target="eu-eu">EU–EU</button>
+                            <button class="quick-btn target-checkbox" data-target="eu-ger">EU–GER</button>
+                            <button class="quick-btn target-checkbox" data-target="eu-uk">EU–UK</button>
+                        </div>
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label">Type of Exposure</label>
+                        <select class="form-select" id="actionExposure">
+                            <option value="">Select Type</option>
+                            <option value="critical-minerals">Critical Minerals</option>
+                            <option value="supply-chain">Supply Chain</option>
+                            <option value="technologies">Technologies</option>
+                            <option value="manufacturing">Manufacturing</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label">Goal</label>
+                        <textarea class="form-textarea" id="actionGoal" placeholder="Describe the goal of this action..."></textarea>
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label">Ally Contingencies</label>
+                        <textarea class="form-textarea" id="actionContingencies" placeholder="Describe ally contingencies..."></textarea>
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label">Expected Outcomes</label>
+                        <textarea class="form-textarea" id="actionOutcomes" placeholder="Describe the expected outcomes..."></textarea>
+                    </div>
+                    <button class="btn btn-success" onclick="addAction()">Add Action</button>
+                </div>
+            </div>
+
+            <!-- Observations Section -->
+            <div class="section-content" id="observations">
+                <div class="section-header">
+                    <h2>Observations</h2>
+                    <p>Record key insights, patterns, and important notes from the session</p>
+                </div>
+
+                <div class="note-card">
+                    <h3>
+                        <span class="card-icon">
+                            <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </span>
+                        Key Observations
+                    </h3>
+                    <div id="keyObservations">
+                        <div class="empty-state">
+                            <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                            </svg>
+                            <p>No observations recorded</p>
+                            <p>Key insights will appear here</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="note-card">
+                    <h3>
+                        <span class="card-icon">
+                            <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        </span>
+                        Add Observation
+                    </h3>
+                    <div class="form-field">
+                        <label class="form-label">Category</label>
+                        <select class="form-select" id="observationCategory">
+                            <option value="">Select Category</option>
+                            <option value="strategic">Strategic Insights</option>
+                            <option value="team">Team Dynamics</option>
+                            <option value="technical">Technical Issues</option>
+                            <option value="decision">Decision Points</option>
+                            <option value="risk">Risk Assessment</option>
+                            <option value="communication">Communication Patterns</option>
+                            <option value="resource">Resource Allocation</option>
+                            <option value="timeline">Timeline Issues</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label">Observation</label>
+                        <textarea class="form-textarea" id="newObservationText" placeholder="Record a key insight or important note..."></textarea>
+                    </div>
+                    <button class="btn btn-success" onclick="addObservation()">Add Observation</button>
+                </div>
+            </div>
+
+            <!-- Timeline Section -->
+            <div class="section-content" id="timeline">
+                <div class="section-header">
+                    <h2>Timeline</h2>
+                    <p>Overview of the session timeline and key events</p>
+                </div>
+
+                <div class="note-card">
+                    <h3>
+                        <span class="card-icon">
+                            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        </span>
+                        Session Timeline
+                    </h3>
+                    <div id="sessionTimeline">
+                        <div class="empty-state">
+                            <p>No timeline events</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WHITE Cell Responses Section -->
+            <div class="section-content" id="white-responses">
+                <div class="section-header">
+                    <h2>WHITE Cell Responses</h2>
+                    <p>Feedback, adjudication notes, and outcomes provided to BLUE</p>
+                </div>
+                <div class="note-card">
+                    <h3>
+                        <span class="card-icon">
+                            <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        </span>
+                        Responses (Move <span id="whiteResponsesMove">1</span>)
+                    </h3>
+                    <div style="margin-bottom:12px;">
+                        <button class="btn btn-secondary" id="refreshWhiteResponses">Refresh</button>
+                    </div>
+                    <div id="whiteResponsesContainer">
+                        <div class="empty-state">
+                            <p>No responses from WHITE Cell</p>
+                            <p>Click refresh to check for updates</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../js/utils.js"></script>
+    <script src="../../js/loading.js"></script>
+    <script src="../../js/autoSave.js"></script>
+    <script type="module" src="../../js/facilitator.js"></script>
+</body>
+</html>
