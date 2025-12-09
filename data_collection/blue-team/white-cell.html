@@ -1519,50 +1519,6 @@
         // Import Firebase configuration and utilities
         import { initializeFirebase, saveToFirebase, loadFromFirebase, addToFirebaseCollection, queryFirebaseCollection } from "../../firebase-config.js";
 
-        // Initialize Firebase
-        let db, auth;
-        initializeFirebase().then(result => {
-            if (result) {
-                db = result.db;
-                auth = result.auth;
-                window.db = db;
-                window.auth = auth;
-                console.log('Firebase initialized in white-cell');
-                
-                // Setup real-time listeners once authenticated
-                setupRealtimeListeners();
-            } else {
-                db = null;
-                auth = null;
-                window.db = null;
-                window.auth = null;
-            }
-            // Load data after Firebase check
-            loadData().then(() => {
-                updateBadges();
-                setInterval(saveData, 30000);
-                window.addEventListener('beforeunload', saveData);
-                
-                // Hide loader after data is loaded
-                document.getElementById('loader').classList.add('hidden');
-            });
-        }).catch(error => {
-            console.error('Firebase initialization failed:', error);
-            db = null;
-            auth = null;
-            window.db = null;
-            window.auth = null;
-            // Load data after Firebase check
-            loadData().then(() => {
-                updateBadges();
-                setInterval(saveData, 30000);
-                window.addEventListener('beforeunload', saveData);
-                
-                // Hide loader after data is loaded
-                document.getElementById('loader').classList.add('hidden');
-            });
-        });
-        
         // Firebase utility functions (now using imported functions)
         async function saveToFirebaseLocal(collectionName, docId, data) {
             if (db) {
@@ -1599,7 +1555,34 @@
                 return [];
             }
         }
+
+        // Initialize Firebase
+        let db, auth;
+        initializeFirebase().then(result => {
+            if (result) {
+                db = result.db;
+                auth = result.auth;
+                window.db = db;
+                window.auth = auth;
+                
+                // Setup real-time listeners once authenticated
+                setupRealtimeListeners();
+            } else {
+                db = null;
+                auth = null;
+                window.db = null;
+                window.auth = null;
+            }
+        }).catch(error => {
+            db = null;
+            auth = null;
+            window.db = null;
+            window.auth = null;
+        });
+
+        // Defer calling loadData until after functions are defined in non-module script
     </script>
+    <script>
 
         function changeMoveContext() {
             currentMove = parseInt(document.getElementById('moveSelector').value);
@@ -2398,6 +2381,9 @@
             displayCommunicationLog();
         }
 
+        // Make loadData available globally
+        window.loadData = loadData;
+
         function exportNotes() {
             const moves = {};
             for (let i = 1; i <= 3; i++) {
@@ -2422,6 +2408,22 @@
             a.download = `WHITE_Cell_move_${currentMove}_${timestamp}.json`;
             a.click();
         }
+
+        // Kick off initialization after functions are defined
+        (function initWhiteCell() {
+            if (typeof window.loadData === 'function') {
+                window.loadData().then(() => {
+                    updateBadges();
+                    setInterval(saveData, 30000);
+                    window.addEventListener('beforeunload', saveData);
+                    const loader = document.getElementById('loader');
+                    if (loader) loader.classList.add('hidden');
+                }).catch(() => {
+                    const loader = document.getElementById('loader');
+                    if (loader) loader.classList.add('hidden');
+                });
+            }
+        })();
 
         function buildDecisionTimeline(moves) {
             const timeline = [];
@@ -2539,5 +2541,13 @@
         });
 
         // Auto-refresh timeline data every 5 seconds
+                // Fallback: hide loader after a short delay even if init doesn't run
+        window.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                const loader = document.getElementById('loader');
+                if (loader) loader.classList.add('hidden');
+            }, 2000);
+        });
+        </script>
 </body>
 </html>

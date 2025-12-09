@@ -1043,7 +1043,7 @@
                     </div>
                     <div class="form-field">
                         <label class="form-label">Mechanism</label>
-                        <select class="form-select" id="actionMechanism">
+                        <select class="form-select" id="actionMechanism" onchange="toggleOtherMechanism()">
                             <option value="">Select Mechanism</option>
                             <option value="sanctions">Sanctions/Financial Restrictions</option>
                             <option value="export">Export Controls</option>
@@ -1053,7 +1053,9 @@
                             <option value="economic">General Economic Statecraft/Cross-Cutting Tools</option>
                             <option value="industrial">Industrial Policy</option>
                             <option value="infrastructure">Infrastructure & Workforce Development/Supply-Chain Resilience</option>
+                            <option value="other">Other</option>
                         </select>
+                        <input type="text" class="form-input" id="otherMechanismInput" placeholder="Please specify mechanism..." style="display:none; margin-top:8px;" />
                     </div>
                     <div class="form-field">
                         <label class="form-label">Sector</label>
@@ -1190,6 +1192,17 @@
     </div>
 
     <script type="module">
+                // Show/hide the 'Other' mechanism input
+                window.toggleOtherMechanism = function() {
+                    const select = document.getElementById('actionMechanism');
+                    const otherInput = document.getElementById('otherMechanismInput');
+                    if (select.value === 'other') {
+                        otherInput.style.display = '';
+                    } else {
+                        otherInput.style.display = 'none';
+                        otherInput.value = '';
+                    }
+                }
         // Firebase imports and local functions
         import { initializeFirebase, saveToFirebase, loadFromFirebase, addToFirebaseCollection, queryFirebaseCollection } from "../../firebase-config.js";
 
@@ -1390,7 +1403,15 @@
 
         // Actions management
         function addAction() {
-            const mechanism = document.getElementById('actionMechanism').value;
+            let mechanism = document.getElementById('actionMechanism').value;
+            if (mechanism === 'other') {
+                const otherVal = document.getElementById('otherMechanismInput').value.trim();
+                if (!otherVal) {
+                    alert('Please specify the mechanism.');
+                    return;
+                }
+                mechanism = otherVal;
+            }
             const sector = document.getElementById('actionSector').value;
             const exposure = document.getElementById('actionExposure').value;
             const engaged = document.getElementById('actionEngaged').value.trim();
