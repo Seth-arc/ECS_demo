@@ -1555,6 +1555,7 @@
         // Firebase utility functions (now using imported functions)
         // ...existing code...
     </script>
+    <script>
 
         function changeMoveContext() {
             currentMove = parseInt(document.getElementById('moveSelector').value);
@@ -2353,6 +2354,9 @@
             displayCommunicationLog();
         }
 
+        // Make loadData available globally
+        window.loadData = loadData;
+
         function exportNotes() {
             const moves = {};
             for (let i = 1; i <= 3; i++) {
@@ -2485,5 +2489,13 @@
         });
 
         // Auto-refresh timeline data every 5 seconds
+                // Fallback: hide loader after a short delay even if init doesn't run
+        window.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                const loader = document.getElementById('loader');
+                if (loader) loader.classList.add('hidden');
+            }, 2000);
+        });
+        </script>
 </body>
 </html>
