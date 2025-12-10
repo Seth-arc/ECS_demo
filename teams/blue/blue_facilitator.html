@@ -250,7 +250,7 @@
                     </div>
                     <div class="form-field">
                         <label class="form-label">Mechanism</label>
-                        <select class="form-select" id="actionMechanism">
+                        <select class="form-select" id="actionMechanism" onchange="handleMechanismChange()">
                             <option value="">Select Mechanism</option>
                             <option value="sanctions">Sanctions/Financial Restrictions</option>
                             <option value="export">Export Controls</option>
@@ -260,7 +260,11 @@
                             <option value="economic">General Economic Statecraft/Cross-Cutting Tools</option>
                             <option value="industrial">Industrial Policy</option>
                             <option value="infrastructure">Infrastructure & Workforce Development/Supply-Chain Resilience</option>
+                            <option value="other">Other (please specify)</option>
                         </select>
+                        <div id="otherMechanismContainer" style="display:none; margin-top:8px;">
+                            <input type="text" class="form-input" id="otherMechanismInput" placeholder="Describe other mechanism...">
+                        </div>
                     </div>
                     <div class="form-field">
                         <label class="form-label">Sector</label>

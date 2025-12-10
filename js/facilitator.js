@@ -254,12 +254,22 @@
 
         // Actions management
         function addAction() {
-            const mechanism = document.getElementById('actionMechanism').value;
+            let mechanism = document.getElementById('actionMechanism').value;
             const sector = document.getElementById('actionSector').value;
             const goal = document.getElementById('actionGoal').value.trim();
             const outcomes = document.getElementById('actionOutcomes').value.trim();
             const contingencies = document.getElementById('actionContingencies').value.trim();
             const exposure = document.getElementById('actionExposure').value;
+
+            // If 'Other' is selected, get the value from the input
+            if (mechanism === 'other') {
+                const otherValue = document.getElementById('otherMechanismInput').value.trim();
+                if (!otherValue) {
+                    alert('Please specify the other mechanism.');
+                    return;
+                }
+                mechanism = otherValue;
+            }
 
             if (!mechanism || !sector || !goal || !outcomes || !contingencies || !exposure) {
                 alert('Please fill in all required fields.');
@@ -299,11 +309,28 @@
             document.getElementById('actionGoal').value = '';
             document.getElementById('actionOutcomes').value = '';
             document.getElementById('actionContingencies').value = '';
+            document.getElementById('otherMechanismInput').value = '';
+            document.getElementById('otherMechanismContainer').style.display = 'none';
             document.querySelectorAll('.target-checkbox').forEach(btn => btn.classList.remove('selected'));
 
             updateActionNumber();
             saveData();
         }
+
+        // Show/hide the 'Other' mechanism input
+        function handleMechanismChange() {
+            const select = document.getElementById('actionMechanism');
+            const otherContainer = document.getElementById('otherMechanismContainer');
+            if (select.value === 'other') {
+                otherContainer.style.display = '';
+            } else {
+                otherContainer.style.display = 'none';
+                document.getElementById('otherMechanismInput').value = '';
+            }
+        }
+
+        // Ensure global availability
+        window.handleMechanismChange = handleMechanismChange;
 
         // Undo stack for actions
         let undoStack = [];
