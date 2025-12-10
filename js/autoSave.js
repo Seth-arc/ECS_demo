@@ -4,7 +4,7 @@
  */
 
 let dataStorageHandle = null;
-let autoSaveEnabled = true;
+let autoSaveEnabled = false;
 let autoSaveInterval = null;
 
 /**
@@ -84,108 +84,40 @@ async function saveToDataStorage(subfolder, filename, data) {
                 console.error('Error writing to file system:', error);
                 // Fall through to download fallback
                 if (error.name === 'QuotaExceededError' || error.name === 'NotAllowedError') {
-                    // Show user notification for critical errors
-                    if (typeof showToast === 'function') {
-                        showToast('Auto-save failed: ' + (error.message || 'Storage access denied'), 5000);
+                    function initAutoSave() {
+                        // Check if auto-save is enabled
+                        const saved = localStorage.getItem('autoSaveEnabled');
+                        autoSaveEnabled = saved !== null ? saved === 'true' : false;
+                        // Check for saved directory handle preference
+                        const savedHandle = localStorage.getItem('dataStorageHandle');
+                        if (savedHandle) {
+                            try {
+                                const handleData = JSON.parse(savedHandle);
+                                if (handleData.granted) {
+                                    const lastSelected = handleData.timestamp ? new Date(handleData.timestamp) : null;
+                                    const daysSince = lastSelected ? Math.floor((Date.now() - lastSelected.getTime()) / (1000 * 60 * 60 * 24)) : null;
+                                    if (daysSince !== null && daysSince > 0) {
+                                        console.log(`Data storage folder was previously selected ${daysSince} day(s) ago. Click "Select Data Storage Folder" to re-enable direct file access. Auto-save is using download fallback.`);
+                                        if (typeof showToast === 'function') {
+                                            showToast('Auto-save is using downloads. Click "Select Data Storage Folder" to enable direct file access.', 5000);
+                                        }
+                                    } else {
+                                        console.log('Data storage folder was previously selected. Click "Select Data Storage Folder" to re-enable direct file access.');
+                                    }
+                                }
+                            } catch (e) {
+                                // Ignore
+                            }
+                        }
+                        // Set up auto-save if enabled (will use download fallback if no folder selected)
+                        if (autoSaveEnabled) {
+                            setAutoSaveEnabled(true);
+                        } else {
+                            setAutoSaveEnabled(false);
+                        }
+                        // Remove auto-save on beforeunload
+                        window.removeEventListener('beforeunload', () => {});
                     }
-                }
-            }
-        }
-        
-        // Fallback: Automatic download with consistent naming
-        try {
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            // Use folder structure in filename to help organization
-            // Format: data_storage_[subfolder]_[original_filename]
-            a.download = `data_storage_${subfolder}_${filename}`;
-            a.style.display = 'none';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            
-            // Log for debugging (silent - no user notification for successful auto-saves)
-            console.log(`Auto-saved: ${filename} to ${subfolder}/ (downloaded as data_storage_${subfolder}_${filename})`);
-            
-            return true;
-        } catch (fallbackError) {
-            console.error('Error in auto-save fallback:', fallbackError);
-            if (typeof showToast === 'function') {
-                showToast('Auto-save failed. Please export data manually.', 5000);
-            }
-            return false;
-        }
-    } catch (error) {
-        console.error('Error saving to data storage:', error);
-        if (typeof showToast === 'function') {
-            showToast('Auto-save error: ' + (error.message || 'Unknown error'), 5000);
-        }
-        return false;
-    }
-}
-
-/**
- * Auto-save facilitator data
- * @param {string} sessionId - Session ID
- * @param {number} move - Move number
- */
-async function autoSaveFacilitatorData(sessionId, move) {
-    try {
-        const data = safeGetItem(`actions_session_${sessionId}_move_${move}`, null);
-        if (!data) return;
-        
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T').join('_').slice(0, -5);
-        const filename = `facilitator_session_${sessionId}_move_${move}_${timestamp}.json`;
-        
-        const exportData = {
-            exported: new Date().toISOString(),
-            exportedBy: 'BLUE Team Facilitator',
-            sessionId: sessionId,
-            move: move,
-            data: data
-        };
-        
-        await saveToDataStorage('facilitators', filename, exportData);
-    } catch (error) {
-        console.error('Error auto-saving facilitator data:', error);
-    }
-}
-
-/**
- * Auto-save notetaker data
- * @param {string} sessionId - Session ID
- * @param {number} move - Move number
- */
-async function autoSaveNotetakerData(sessionId, move) {
-    try {
-        const data = safeGetItem(`notes_session_${sessionId}_move_${move}`, null);
-        if (!data) return;
-        
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T').join('_').slice(0, -5);
-        const filename = `notetaker_session_${sessionId}_move_${move}_${timestamp}.json`;
-        
-        const exportData = {
-            exported: new Date().toISOString(),
-            exportedBy: 'BLUE Team Notetaker',
-            sessionId: sessionId,
-            move: move,
-            data: data
-        };
-        
-        await saveToDataStorage('notetakers', filename, exportData);
-    } catch (error) {
-        console.error('Error auto-saving notetaker data:', error);
-    }
-}
-
-/**
- * Auto-save white cell data
- * @param {string} sessionId - Session ID
- * @param {number} move - Move number
- */
 async function autoSaveWhiteCellData(sessionId, move) {
     try {
         const data = safeGetItem(`whiteCell_session_${sessionId}_move_${move}`, null);

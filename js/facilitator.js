@@ -1132,7 +1132,7 @@
         window.updateTimeline = updateTimeline;
         
         // Poll for game state updates every second
-        setInterval(updateGameStateFromShared, 1000);
+        // setInterval(updateGameStateFromShared, 1000); // Disabled auto-update
         
         // Initialize
         updateGameStateFromShared();
@@ -1243,7 +1243,7 @@
 
         // Start a light poll every 10s (reduced from 30s for better responsiveness)
         // Also listen for storage events for immediate updates
-        setInterval(pollWhiteResponses, 10000);
+        // setInterval(pollWhiteResponses, 10000); // Disabled auto-polling
         
         // Listen for storage events for immediate updates
         window.addEventListener('storage', (e) => {
@@ -1312,7 +1312,7 @@
         }
 
         // Poll timer state every second for real-time updates
-        setInterval(updateTimer, 1000);
+        // setInterval(updateTimer, 1000); // Disabled auto-timer
 
         // Initialize
         updateTimer();
