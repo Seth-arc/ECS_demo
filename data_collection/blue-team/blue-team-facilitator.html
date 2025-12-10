@@ -1190,65 +1190,7 @@
     </div>
 
     <script type="module">
-        // Firebase imports and local functions
-        import { initializeFirebase, saveToFirebase, loadFromFirebase, addToFirebaseCollection, queryFirebaseCollection } from "../../firebase-config.js";
-
-        let db, auth;
-
-        // Initialize Firebase
-        initializeFirebase().then(result => {
-            if (result) {
-                db = result.db;
-                auth = result.auth;
-                console.log('Firebase initialized in facilitator');
-            } else {
-                db = null;
-                auth = null;
-            }
-            loadData(); // Load data after Firebase check
-        }).catch(error => {
-            console.error('Firebase initialization failed:', error);
-            db = null;
-            auth = null;
-            loadData(); // Fallback to localStorage
-        });
-
-        // Local wrapper functions for Firebase operations
-        async function saveToFirebaseLocal(collectionName, docId, data) {
-            if (db) {
-                return await saveToFirebase(db, collectionName, docId, data);
-            } else {
-                localStorage.setItem(`${collectionName}_${docId}`, JSON.stringify(data));
-                return true;
-            }
-        }
-
-        async function loadFromFirebaseLocal(collectionName, docId) {
-            if (db) {
-                return await loadFromFirebase(db, collectionName, docId);
-            } else {
-                const localData = localStorage.getItem(`${collectionName}_${docId}`);
-                return localData ? JSON.parse(localData) : null;
-            }
-        }
-
-        async function addToFirebaseCollectionLocal(collectionName, data) {
-            if (db) {
-                return await addToFirebaseCollection(db, collectionName, data);
-            } else {
-                console.log('Firebase not available, skipping add to collection');
-                return null;
-            }
-        }
-
-        async function queryFirebaseCollectionLocal(collectionName, conditions = []) {
-            if (db) {
-                return await queryFirebaseCollection(db, collectionName, conditions);
-            } else {
-                console.log('Firebase not available, skipping query');
-                return [];
-            }
-        }
+        // ...existing code...
 
         // Basic functionality for the facilitator platform
         let currentMove = 1;
@@ -1606,25 +1548,14 @@
                 }
                 
                 if (data) {
-                    const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `BLUE_Facilitator_Move${currentMove}_${new Date().toISOString().split('T')[0]}.json`;
-                    a.click();
+                    // Data export/download removed
                 }
             } catch (error) {
                 console.error('Error exporting data:', error);
                 // Fallback to localStorage
                 const localData = localStorage.getItem(`blueFacilitatorMove${currentMove}`);
                 if (localData) {
-                    const data = JSON.parse(localData);
-                    const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `BLUE_Facilitator_Move${currentMove}_${new Date().toISOString().split('T')[0]}.json`;
-                    a.click();
+                    // Data export/download removed
                 }
             }
         }

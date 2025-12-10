@@ -1767,66 +1767,7 @@
     </div>
 
     <script type="module">
-        // Firebase imports and local functions
-        import { initializeFirebase, saveToFirebase, loadFromFirebase, addToFirebaseCollection, queryFirebaseCollection } from "../../firebase-config.js";
-
-        let db, auth;
-
-        // Initialize Firebase
-        initializeFirebase().then(result => {
-            if (result) {
-                db = result.db;
-                auth = result.auth;
-                console.log('Firebase initialized in notetaker');
-            } else {
-                db = null;
-                auth = null;
-            }
-            loadData(); // Load data after Firebase check
-        }).catch(error => {
-            console.error('Firebase initialization failed:', error);
-            db = null;
-            auth = null;
-            loadData(); // Fallback to localStorage
-        });
-
-        // Local wrapper functions for Firebase operations
-        async function saveToFirebaseLocal(collectionName, docId, data) {
-            if (db) {
-                return await saveToFirebase(db, collectionName, docId, data);
-            } else {
-                localStorage.setItem(`${collectionName}_${docId}`, JSON.stringify(data));
-                return true;
-            }
-        }
-
-        async function loadFromFirebaseLocal(collectionName, docId) {
-            if (db) {
-                return await loadFromFirebase(db, collectionName, docId);
-            } else {
-                const localData = localStorage.getItem(`${collectionName}_${docId}`);
-                return localData ? JSON.parse(localData) : null;
-            }
-        }
-
-        async function addToFirebaseCollectionLocal(collectionName, data) {
-            if (db) {
-                return await addToFirebaseCollection(db, collectionName, data);
-            } else {
-                // For add, just save with a generated id or something, but for simplicity, skip
-                console.log('Firebase not available, skipping add to collection');
-                return null;
-            }
-        }
-
-        async function queryFirebaseCollectionLocal(collectionName, conditions = []) {
-            if (db) {
-                return await queryFirebaseCollection(db, collectionName, conditions);
-            } else {
-                console.log('Firebase not available, skipping query');
-                return [];
-            }
-        }
+        // ...existing code...
 
         // Move Management
         let currentMove = 1;
@@ -2366,16 +2307,7 @@
                 allianceEngagement: buildAllianceReport(moves),
                 factionAnalysis: buildFactionAnalysis(moves)
             };
-            
-            const blob = new Blob([JSON.stringify(exportData, null, 2)], {type: 'application/json'});
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T').join('_').slice(0, -5);
-            a.download = `BLUE_notetaker_move_${currentMove}_${timestamp}.json`;
-            a.click();
-            
-            alert('Export complete. All Team Dynamics and Alliance Engagement data included.');
+            // Data export/download removed
         }
 
         function buildDecisionTimeline(moves) {
@@ -2545,10 +2477,7 @@
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `BLUE_Move${currentMove}_Submitted_${new Date().toISOString().split('T')[0]}.json`;
-                a.click();
-                
-                alert(`Move ${currentMove} submitted to WHITE Cell.\n\nSubmission file downloaded for your records.`);
+                // Data submission download removed
             }
         }
 

@@ -1516,18 +1516,7 @@
     </div>
 
     <script type="module">
-        // Import Firebase configuration and utilities
-        import { initializeFirebase, saveToFirebase, loadFromFirebase, addToFirebaseCollection, queryFirebaseCollection } from "../../firebase-config.js";
-
-        // Initialize Firebase
-        let db, auth;
-        initializeFirebase().then(result => {
-            if (result) {
-                db = result.db;
-                auth = result.auth;
-                window.db = db;
-                window.auth = auth;
-                console.log('Firebase initialized in white-cell');
+        // ...existing code...
                 
                 // Setup real-time listeners once authenticated
                 setupRealtimeListeners();
@@ -1564,41 +1553,7 @@
         });
         
         // Firebase utility functions (now using imported functions)
-        async function saveToFirebaseLocal(collectionName, docId, data) {
-            if (db) {
-                return await saveToFirebase(db, collectionName, docId, data);
-            } else {
-                localStorage.setItem(`${collectionName}_${docId}`, JSON.stringify(data));
-                return true;
-            }
-        }
-        
-        async function loadFromFirebaseLocal(collectionName, docId) {
-            if (db) {
-                return await loadFromFirebase(db, collectionName, docId);
-            } else {
-                const localData = localStorage.getItem(`${collectionName}_${docId}`);
-                return localData ? JSON.parse(localData) : null;
-            }
-        }
-        
-        async function addToFirebaseCollectionLocal(collectionName, data) {
-            if (db) {
-                return await addToFirebaseCollection(db, collectionName, data);
-            } else {
-                console.log('Firebase not available, skipping add to collection');
-                return null;
-            }
-        }
-        
-        async function queryFirebaseCollectionLocal(collectionName, conditions = []) {
-            if (db) {
-                return await queryFirebaseCollection(db, collectionName, conditions);
-            } else {
-                console.log('Firebase not available, skipping query');
-                return [];
-            }
-        }
+        // ...existing code...
     </script>
 
         function changeMoveContext() {
@@ -2419,8 +2374,7 @@
             const a = document.createElement('a');
             a.href = url;
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T').join('_').slice(0, -5);
-            a.download = `WHITE_Cell_move_${currentMove}_${timestamp}.json`;
-            a.click();
+            // Data export/download removed
         }
 
         function buildDecisionTimeline(moves) {
@@ -2460,15 +2414,7 @@
                 data.finalized = true;
                 data.finalizedAt = new Date().toISOString();
                 localStorage.setItem(`whiteCellMove${currentMove}Finalized`, JSON.stringify(data));
-                
-                const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `WHITE_Cell_Move${currentMove}_Finalized_${new Date().toISOString().split('T')[0]}.json`;
-                a.click();
-                
-                alert(`Move ${currentMove} finalized.\n\nFinalization file downloaded for your records.`);
+                // Data finalization download removed
             }
         }
 
