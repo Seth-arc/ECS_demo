@@ -1,3 +1,20 @@
+        // Real-time update for facilitator info requests
+        window.addEventListener('storage', function(event) {
+            const sessionId = getSessionId();
+            // Match any move for this session
+            const sessionPattern = new RegExp(`^blueRequests_session_${sessionId}_move_`);
+            const legacyPattern = /^blueRequests_move_/;
+            if (
+                sessionPattern.test(event.key) ||
+                legacyPattern.test(event.key) ||
+                event.key === '_requestDeleted'
+            ) {
+                // Delay to allow other tabs to finish updating
+                setTimeout(() => {
+                    loadData();
+                }, 100);
+            }
+        });
         // Use shared getSessionId from utils.js
         // Migrate data on load
         if (typeof migrateData === 'function') {
@@ -610,57 +627,53 @@
                 data = validated;
             }
 
-            timelineItems = data.timelineItems || [];
-            // Merge BLUE facilitator info requests, actions, and observations into timeline
+            // Only show facilitator/white cell items, not stale/deleted ones
             try {
                 const sessionId = getSessionId();
-                // Try session-aware key first, then fallback to legacy key
+                // Info requests
                 let reqData = safeGetItem(`blueRequests_session_${sessionId}_move_${currentMove}`, null);
                 if (!reqData) {
                     reqData = safeGetItem(`blueRequests_move_${currentMove}`, null);
                 }
+                let timelineMerged = [];
                 if (reqData) {
                     const parsed = Array.isArray(reqData) ? reqData : (reqData.requests || []);
-                    const mapped = parsed.map((r, idx) => ({
+                    timelineMerged = timelineMerged.concat(parsed.map((r, idx) => ({
                         type: 'requestinfo',
                         content: r.details || r.text || '',
                         phase: r.phase || currentPhase,
                         time: new Date(r.timestamp || Date.now()).toLocaleTimeString(),
                         timestamp: r.id || Date.now(),
                         faction: 'blue'
-                    }));
-                    timelineItems = mapped.concat(timelineItems);
+                    })));
                 }
-                
-                // Merge facilitator actions
+                // Facilitator actions
                 const facilitatorData = safeGetItem(`actions_session_${sessionId}_move_${currentMove}`, null);
                 if (facilitatorData && facilitatorData.actions && Array.isArray(facilitatorData.actions)) {
-                    const actionItems = facilitatorData.actions.map(action => ({
+                    timelineMerged = timelineMerged.concat(facilitatorData.actions.map(action => ({
                         type: 'action',
                         content: `Action ${action.number}: ${action.goal || 'No goal specified'}`,
                         phase: action.phase || currentPhase,
                         time: action.timestamp || new Date().toLocaleTimeString(),
                         timestamp: action.id || Date.now(),
                         faction: 'blue'
-                    }));
-                    timelineItems = actionItems.concat(timelineItems);
+                    })));
                 }
-                
-                // Merge facilitator observations
+                // Facilitator observations
                 if (facilitatorData && facilitatorData.observations && Array.isArray(facilitatorData.observations)) {
-                    const observationItems = facilitatorData.observations.map(obs => ({
+                    timelineMerged = timelineMerged.concat(facilitatorData.observations.map(obs => ({
                         type: 'observation',
                         content: `${obs.category || 'Observation'}: ${obs.text || ''}`,
                         phase: obs.phase || currentPhase,
                         time: obs.timestamp || new Date().toLocaleTimeString(),
                         timestamp: obs.id || Date.now(),
                         faction: 'blue'
-                    }));
-                    timelineItems = observationItems.concat(timelineItems);
+                    })));
                 }
+                timelineItems = timelineMerged;
             } catch(e) {
                 console.error('Error merging facilitator data into timeline:', e);
-                // Continue without merging - not critical
+                timelineItems = [];
             }
             updateTimeline();
             updateBadges();

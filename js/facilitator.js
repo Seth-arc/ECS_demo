@@ -542,24 +542,37 @@
             const request = infoRequests.find(r => r.id === requestId);
             if (!request) return;
             if (!confirm('Delete this request?')) return;
-            
+
             pushToUndoStack('delete', { type: 'request', item: request });
             infoRequests = infoRequests.filter(r => r.id !== requestId);
-            
-            // Update localStorage to notify White Cell
+
+            // Update localStorage for notetaker/white cell visibility
             const sessionId = getSessionId();
             const keySession = `blueRequests_session_${sessionId}_move_${currentMove}`;
+            const keySimple = `blueRequests_move_${currentMove}`;
             try {
-                const existing = safeGetItem(keySession, []);
-                const updated = existing.filter(r => r.id !== requestId);
-                safeSetItem(keySession, updated);
-                
-                // Also update legacy key if it exists
-                const keySimple = `blueRequests_move_${currentMove}`;
-                if (localStorage.getItem(keySimple)) {
-                    safeSetItem(keySimple, updated);
+                // Remove from session-aware key
+                let arrSession = [];
+                try {
+                    const existingSession = localStorage.getItem(keySession);
+                    arrSession = existingSession ? JSON.parse(existingSession) : [];
+                } catch (e) {
+                    arrSession = [];
                 }
-                
+                arrSession = arrSession.filter(r => r.id !== requestId);
+                localStorage.setItem(keySession, JSON.stringify(arrSession));
+
+                // Remove from legacy key
+                let arrSimple = [];
+                try {
+                    const existingSimple = localStorage.getItem(keySimple);
+                    arrSimple = existingSimple ? JSON.parse(existingSimple) : [];
+                } catch (e) {
+                    arrSimple = [];
+                }
+                arrSimple = arrSimple.filter(r => r.id !== requestId);
+                localStorage.setItem(keySimple, JSON.stringify(arrSimple));
+
                 // Notify White Cell via storage event marker
                 localStorage.setItem('_requestDeleted', JSON.stringify({
                     requestId: requestId,
@@ -570,7 +583,7 @@
             } catch (e) {
                 console.error('Error updating request storage:', e);
             }
-            
+
             updateRequestsDisplay();
             saveData();
             showToast('Request deleted');
@@ -759,7 +772,19 @@
                 if (!safeSetItem(key, data)) {
                     throw new Error('Failed to save data to storage');
                 }
-                
+
+                // --- WHITE CELL COMPATIBILITY PATCH ---
+                // Also save a copy under blueActions_session_${sessionId}_move_${currentMove}
+                const blueKey = `blueActions_session_${sessionId}_move_${currentMove}`;
+                // Only save actions array for white cell compatibility
+                const blueData = { actions: actions };
+                try {
+                    localStorage.setItem(blueKey, JSON.stringify(blueData));
+                } catch (e) {
+                    console.warn('Could not write to blueActions_session key:', e);
+                }
+                // --- END PATCH ---
+
                 // Auto-save to data_storage folder (throttled - only every 30 seconds)
                 if (typeof autoSaveFacilitatorData === 'function') {
                     const lastSave = localStorage.getItem(`lastAutoSave_facilitator_${sessionId}_${currentMove}`);
@@ -776,6 +801,7 @@
                 } else {
                     console.error('Unexpected error saving data:', e);
                 }
+                showToast('Error saving data');
             }
         }
 
